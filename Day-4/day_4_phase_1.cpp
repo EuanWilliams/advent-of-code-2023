@@ -15,7 +15,7 @@
 using namespace std;
 
 bool check_number_in_array(int number, vector<int> array) {
-    for (int i = 0; array.size(); i++) {
+    for (int i = 0; i < array.size(); i++) {
         if (array[i] == number) {
             return true;
         }
@@ -30,16 +30,24 @@ class Card {
         vector<int> winning_numbers = {};
         vector<int> our_numbers = {};
 
-    private:
-        int _number_of_matches;
-
-    void calculate_score(){
+    int calculate_score(){
+        cout << "Matched ";
         for (int i = 0; i < winning_numbers.size(); i++) {
             if (check_number_in_array(winning_numbers[i], our_numbers)) {
-                _number_of_matches++;
+                cout << winning_numbers[i] << " ";
+                if (score == 0) {
+                    score = 1;
+                }
+                else {
+                    score = score * 2;
+                }
             }
         };
+        return score;
     };
+
+    private:
+        int score = 0;
 };
 
 
@@ -91,15 +99,77 @@ int get_card_id(string line)
     return game_id;
 }
 
+bool check_string_is_numerical( string s ) {
+   for( int i = 0; i < s.length(); i++ ) {
+      if( !isdigit( s[i] )) {
+         return false;
+      }
+   }
+   return true;
+}
+
+vector<int> split_number_string(string line){
+    vector<int> numbers = {};
+    vector<int> split_locations = find_location_of_delimiter(line, ' ');
+    split_locations.insert(split_locations.begin(), -1); // Ensure we get the first roll too.
+
+    for (int i = 0; i < split_locations.size(); i++) {
+        string potential_number = line.substr(split_locations[i] + 1, split_locations[i + 1] - split_locations[i]);
+        if (potential_number == "") {
+            continue;
+        }
+
+        // Remove any whitespace
+        vector<int> space_locations = find_location_of_delimiter(potential_number, ' ');
+        for (int j = 0; j < space_locations.size(); j++) {
+            potential_number.erase(space_locations[j], 1);
+        }
+
+        if (potential_number.size() == 0) {
+            continue;
+        }
+        if (check_string_is_numerical(potential_number)){
+            numbers.push_back(stoi(potential_number));
+        }
+
+    } 
+    return numbers;
+}
+
+Card split_number_list(string line, Card new_card) {
+    int delimiter_split_location = find_location_of_delimiter(line, '|')[0];
+
+    string winning_numbers_string = line.substr(0, delimiter_split_location);
+    cout << winning_numbers_string << endl;
+    
+    string our_number_string = line.substr(delimiter_split_location + 1, line.size());
+    cout << our_number_string << endl;
+    
+    new_card.winning_numbers = split_number_string(winning_numbers_string);
+    new_card.our_numbers = split_number_string(our_number_string);
+    
+    return new_card;
+}
+
 int main() {
     string filename = "input.txt";
     vector<string> line_list = read_lines_from_file(filename);
-    vector<Card> card_list = {};
 
+    int total = 0;
     for (string line: line_list) {
+        cout << "Processing line: " << line << endl;
         Card new_card = Card();
+        
         new_card.id = get_card_id(line);
-        card_list.push_back(new_card);
-        cout << new_card.id << endl;
+        int colon_split_location = find_location_of_delimiter(line, ':')[0];
+        line = line.substr(colon_split_location + 1, line.size());
+        
+        new_card = split_number_list(line, new_card);
+        
+        int score = new_card.calculate_score();
+        total += score;
+        cout << "Score: " << score << endl;
     }
+
+    cout << "Total " << total << endl;
 }
