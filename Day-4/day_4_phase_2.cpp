@@ -1,5 +1,5 @@
 //
-// Euan W: 04/12/2023
+// Euan W: 12/12/2023
 //
 // Solution for Advent of Code day 4 Phase 2
 //
@@ -157,10 +157,13 @@ Card split_number_list(string line, Card new_card) {
 }
 
 int main() {
-    string filename = "input.txt";
+    string filename = "input_test.txt";
     vector<string> line_list = read_lines_from_file(filename);
 
     int total = 0;
+    
+    // Populate map of ids to card
+    map<int, vector<Card>> id_to_card_list;
     for (string line: line_list) {
         cout << "Processing line: " << line << endl;
         Card new_card = Card();
@@ -168,13 +171,30 @@ int main() {
         new_card.id = get_card_id(line);
         int colon_split_location = find_location_of_delimiter(line, ':')[0];
         line = line.substr(colon_split_location + 1, line.size());
-        
         new_card = split_number_list(line, new_card);
-        
-        int score = new_card.calculate_score();
-        total += score;
-        cout << "Score: " << score << endl;
+        id_to_card_list[new_card.id] = {new_card};
     }
 
-    cout << "Total " << total << endl;
+    int total_scratchcard_number = 0;
+    map<int, vector<Card>>::iterator iterator = id_to_card_list.begin();
+    while (iterator != id_to_card_list.end()) {
+        int card_id = iterator->first;
+        cout << "Card id: " << card_id << " has " << iterator->second.size() << " cards" << endl;
+        int card_matches = iterator->second[0].count_matches();
+        for (Card card_to_read: iterator->second) {
+            total_scratchcard_number++;
+            cout << "   Reading " << card_to_read.id << " " << card_to_read.count_matches() << endl; 
+            for (int j = 0; j <= card_matches; j++) {
+                int next_card_id = card_id + j;
+                cout << "   Adding match to " << next_card_id << endl;
+                if (next_card_id < id_to_card_list.end()->first) {
+                    cout << id_to_card_list[next_card_id][0].id << endl;
+                    id_to_card_list[next_card_id].push_back(id_to_card_list[next_card_id][0]);
+                    cout << "added" << endl;
+                }
+            }
+        }        
+        iterator++;
+    }
+    cout << "Total scratch cards: " << total_scratchcard_number << endl;
 }
