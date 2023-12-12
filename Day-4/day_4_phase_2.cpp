@@ -50,7 +50,7 @@ class Card {
         }
         return _score;
     };
-
+ 
     private:
         int _score = 0;
 };
