@@ -15,4 +15,4 @@ Advent of code 2023, to try and learn some c++
 
 ## Day 4:
 - Phase 1 ✅
-- Phase 2 ❌
+- Phase 2 ⏳
